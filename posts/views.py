@@ -6,6 +6,7 @@ from .models import  *
 from django.db import models
 import json
 # Create your views here.
+
 @require_http_methods(["DELETE"])
 def delete_post(request,id):
     delete_post=get_object_or_404(Post,pk=id)
@@ -18,36 +19,59 @@ def delete_post(request,id):
 
 
 @require_http_methods(["GET"])
-def get_all(request):
-    posts=Post.objects.all()
-    category_list=[]
+def get_post_all(request):
 
-    for post in posts:
-        category_list.append({
-            "id":post.post_id,
-            "writer":post.name,
-            "content":post.content,
+    post_all = Post.objects.all()
+    
+    post_json_all = []
+    for post in post_all:
+        post_json = {
+            "id": post.post_id,
+            "writer": post.writer,
+            "content": post.content,
+            "date": post.date
+        }
+        post_json_all.append(post_json)
+    
+    return JsonResponse({
+        'status': 200,
+        'message': '모든 방명록 조회 성공',
+        'data': post_json_all
+    })
+
+@require_http_methods(["GET"])
+def get_post(request,id):
+        post = get_object_or_404(Post, pk=id)
+        
+        post_json = {
+            "id": post.post_id,
+            "name": post.writer,
+            "content": post.content,
+            "date": post.date
+        }
+
+        return JsonResponse({
+            'status': 200,
+            'message': '방명록 조회 성공',
+            'data': post_json
         })
 
-    return JsonResponse({
-        'status':200,
-        'message':'모든 방명록 조회 성공',
-        'data':category_list
-    })
 
 @require_http_methods(["POST"])
 def create_post(request):
-    body=json.loads(request.body.decode('utf-8'))
+    body = json.loads(request.body.decode('utf-8'))
 
     new_post=Post.objects.create(
-        name=body['name'],
-        content=body['content']
+        writer=body['writer'],
+        content=body['content'],
+        date=body['date']
     )
 
     new_post_json={
         "id":new_post.post_id,
-        "name":new_post.name,
-        "content":new_post.content
+        "name":new_post.writer,
+        "content":new_post.content,
+        "date":new_post.date
     }
 
     return JsonResponse({
